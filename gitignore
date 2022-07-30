@@ -2,4 +2,4 @@ __pypackages__
 venv
 
 .gitattributes
-coverage 
+coverage
