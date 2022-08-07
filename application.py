@@ -1,3 +1,4 @@
+import re
 from turtle import title
 import uvicorn
 from fastapi import (
@@ -58,6 +59,15 @@ def get_single_blog(id, response: Response, db: Session = Depends(get_db)):
                             detail = f'Blog with ID {id} is not avaliable in the our Database.')
 
     return blog
+
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_blog(id, response: Response, db: Session = Depends(get_db)):
+    db.query(modals.Blog).\
+                    filter(modals.Blog.id == id).\
+                    delete(synchronize_session=False)
+    db.commit()
+
+    return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
 
 
     
