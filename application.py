@@ -1,6 +1,12 @@
 from turtle import title
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import (
+    Depends, 
+    FastAPI, 
+    Response, 
+    HTTPException,
+    status
+    )
 from typing import Optional
 from sqlalchemy.orm import Session
 
@@ -24,7 +30,7 @@ def get_db():
         db.close
 
 
-@app.post('/blog')
+@app.post('/blog', status_code=status.HTTP_201_CREATED)
 def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
     blog_obj = modals.Blog(title=request.title, body=request.body)
 
@@ -36,14 +42,21 @@ def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
     return blog_obj
 
 
-@app.get('/blog')
+@app.get('/blog', status_code=status.HTTP_200_OK)
 def all_blogs(db: Session = Depends(get_db)):
     blogs = db.query(modals.Blog).all()
     return blogs
 
-@app.get('/blog/{id}')
-def get_single_blog(id, db: Session = Depends(get_db)):
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK)
+def get_single_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
+    if not blog:
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return {'detail': f'Blog with ID {id} is not avaliable in the our Database.'}
+
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
+
     return blog
 
 
