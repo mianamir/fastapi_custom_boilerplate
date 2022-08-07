@@ -62,12 +62,38 @@ def get_single_blog(id, response: Response, db: Session = Depends(get_db)):
 
 @app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_blog(id, response: Response, db: Session = Depends(get_db)):
-    db.query(modals.Blog).\
-                    filter(modals.Blog.id == id).\
-                    delete(synchronize_session=False)
+    blog = db.query(modals.Blog).\
+                    filter(modals.Blog.id == id)
+
+    if not blog.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
+    
+    blog.delete(synchronize_session=False)
+                    
     db.commit()
 
     return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
+
+
+@app.put('/blog', status_code=status.HTTP_202_ACCEPTED)
+def update_blog(id, request: sechams.BlogModal, db: Session = Depends(get_db)):
+    blog = db.query(modals.Blog).filter(modals.Blog.id == id)
+
+    if not blog.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
+                                
+    blog.update({modals.Blog.title: request.title,
+            modals.Blog.body: request.body
+            })
+                     
+    db.commit()
+    return {'detail': f'Blog with ID {id} has been updated succussfully.'}
+
+
+
+
 
 
     
