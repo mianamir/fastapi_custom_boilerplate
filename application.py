@@ -1,5 +1,4 @@
-import re
-from turtle import title
+from typing import List
 import uvicorn
 from fastapi import (
     Depends, 
@@ -11,7 +10,9 @@ from fastapi import (
 from typing import Optional
 from sqlalchemy.orm import Session
 
+
 from blog import modals
+from blog.hashing import Hash
 from blog.database import SessionLocal, engine
 
 from blog import sechams
@@ -43,7 +44,7 @@ def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
     return blog_obj
 
 
-@app.get('/blog', status_code=status.HTTP_200_OK)
+@app.get('/blog', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog])
 def all_blogs(db: Session = Depends(get_db)):
     blogs = db.query(modals.Blog).all()
     return blogs
@@ -92,11 +93,65 @@ def update_blog(id, request: sechams.BlogModal, db: Session = Depends(get_db)):
     return {'detail': f'Blog with ID {id} has been updated succussfully.'}
 
 
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog)
+def show_blog(id, response: Response, db: Session = Depends(get_db)):
+    blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
+
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
 
 
+    return blog
 
 
+# User management 
+
+@app.post('/user', status_code=status.HTTP_201_CREATED, response_model=sechams.ShowUser)
+def create_user(request: sechams.User, db: Session = Depends(get_db)):
+
+    # create the password hash before saving into the DB
     
+
+    new_user = modals.User(
+                            name=request.name, 
+                            email=request.email, 
+                            password=Hash.get_pass_bcrypt(request.password))
+
+    db.add(new_user)
+    db.commit()
+
+    db.refresh(new_user)
+
+    return new_user
+
+
+
+
+@app.get('/user/{id}', response_model=sechams.ShowUser)
+def get_user(id, db: Session = Depends(get_db)):
+    user = db.query(modals.User).filter(modals.User.id == id).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail = f'User with ID {id} is not avaliable in the our Database.')
+
+    return user
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
     
