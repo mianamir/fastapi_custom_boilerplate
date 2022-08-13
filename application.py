@@ -32,7 +32,7 @@ def get_db():
         db.close
 
 
-@app.post('/blog', status_code=status.HTTP_201_CREATED)
+@app.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
 def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
     blog_obj = modals.Blog(title=request.title, body=request.body)
 
@@ -44,12 +44,12 @@ def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
     return blog_obj
 
 
-@app.get('/blog', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog])
+@app.get('/blog', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog], tags=['blogs'])
 def all_blogs(db: Session = Depends(get_db)):
     blogs = db.query(modals.Blog).all()
     return blogs
 
-@app.get('/blog/{id}', status_code=status.HTTP_200_OK)
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK, tags=['blogs'])
 def get_single_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
     if not blog:
@@ -61,7 +61,7 @@ def get_single_blog(id, response: Response, db: Session = Depends(get_db)):
 
     return blog
 
-@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT)
+@app.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
 def delete_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).\
                     filter(modals.Blog.id == id)
@@ -77,7 +77,7 @@ def delete_blog(id, response: Response, db: Session = Depends(get_db)):
     return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
 
 
-@app.put('/blog', status_code=status.HTTP_202_ACCEPTED)
+@app.put('/blog', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
 def update_blog(id, request: sechams.BlogModal, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id)
 
@@ -93,7 +93,7 @@ def update_blog(id, request: sechams.BlogModal, db: Session = Depends(get_db)):
     return {'detail': f'Blog with ID {id} has been updated succussfully.'}
 
 
-@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog)
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog, tags=['blogs'])
 def show_blog(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
 
@@ -107,7 +107,7 @@ def show_blog(id, response: Response, db: Session = Depends(get_db)):
 
 # User management 
 
-@app.post('/user', status_code=status.HTTP_201_CREATED, response_model=sechams.ShowUser)
+@app.post('/user', status_code=status.HTTP_201_CREATED, response_model=sechams.ShowUser, tags=['users'])
 def create_user(request: sechams.User, db: Session = Depends(get_db)):
 
     # create the password hash before saving into the DB
@@ -128,7 +128,7 @@ def create_user(request: sechams.User, db: Session = Depends(get_db)):
 
 
 
-@app.get('/user/{id}', response_model=sechams.ShowUser)
+@app.get('/user/{id}', response_model=sechams.ShowUser, tags=['users'])
 def get_user(id, db: Session = Depends(get_db)):
     user = db.query(modals.User).filter(modals.User.id == id).first()
 
@@ -137,6 +137,8 @@ def get_user(id, db: Session = Depends(get_db)):
                             detail = f'User with ID {id} is not avaliable in the our Database.')
 
     return user
+
+
 
 
 
