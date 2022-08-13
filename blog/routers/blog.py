@@ -11,16 +11,19 @@ from typing import List
 from .. import modals, sechams, database
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/blog',
+    tags=['blogs']
+    )
 
 # List all blogs
-@router.get('/blog', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog], tags=['blogs'])
+@router.get('/', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog])
 def all_blogs(db: Session = Depends(database.get_db)):
     blogs = db.query(modals.Blog).all()
     return blogs
 
 # Create blog 
-@router.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
+@router.post('/', status_code=status.HTTP_201_CREATED)
 def create_blog(request: sechams.Blog, db: Session = Depends(database.get_db)):
     blog_obj = modals.Blog(title=request.title, 
                            body=request.body, 
@@ -35,7 +38,7 @@ def create_blog(request: sechams.Blog, db: Session = Depends(database.get_db)):
     return blog_obj
 
 # Get single blog
-@router.get('/blog/{id}', status_code=status.HTTP_200_OK, tags=['blogs'])
+@router.get('/{id}', status_code=status.HTTP_200_OK)
 def get_single_blog(id, response: Response, db: Session = Depends(database.get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
     if not blog:
@@ -48,7 +51,7 @@ def get_single_blog(id, response: Response, db: Session = Depends(database.get_d
     return blog
 
 # Delete blog
-@router.delete('/blog/{id}', status_code=status.HTTP_204_NO_CONTENT, tags=['blogs'])
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
 def delete_blog(id, response: Response, db: Session = Depends(database.get_db)):
     blog = db.query(modals.Blog).\
                     filter(modals.Blog.id == id)
@@ -64,7 +67,7 @@ def delete_blog(id, response: Response, db: Session = Depends(database.get_db)):
     return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
 
 # Update blog
-@router.put('/blog', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
+@router.put('/', status_code=status.HTTP_202_ACCEPTED)
 def update_blog(id, request: sechams.Blog, db: Session = Depends(database.get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id)
 
@@ -80,7 +83,7 @@ def update_blog(id, request: sechams.Blog, db: Session = Depends(database.get_db
     return {'detail': f'Blog with ID {id} has been updated succussfully.'}
 
 # Show blog
-@router.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog, tags=['blogs'])
+@router.get('/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog)
 def show_blog(id, response: Response, db: Session = Depends(database.get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
 

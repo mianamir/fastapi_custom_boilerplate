@@ -11,10 +11,13 @@ from ..hashing import Hash
 from .. import modals, sechams, database
 
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/user',
+    tags=['users']
+)
 
 
-@router.post('/user', status_code=status.HTTP_201_CREATED, response_model=sechams.ShowUser, tags=['users'])
+@router.post('/', status_code=status.HTTP_201_CREATED, response_model=sechams.ShowUser)
 def create_user(request: sechams.User, db: Session = Depends(database.get_db)):
 
     # create the password hash before saving into the DB
@@ -35,7 +38,7 @@ def create_user(request: sechams.User, db: Session = Depends(database.get_db)):
 
 
 
-@router.get('/user/{id}', response_model=sechams.ShowUser, tags=['users'])
+@router.get('/{id}', response_model=sechams.ShowUser)
 def get_user(id, db: Session = Depends(database.get_db)):
     user = db.query(modals.User).filter(modals.User.id == id).first()
 
