@@ -33,8 +33,11 @@ def get_db():
 
 
 @app.post('/blog', status_code=status.HTTP_201_CREATED, tags=['blogs'])
-def create_blog(request: sechams.BlogModal, db: Session = Depends(get_db)):
-    blog_obj = modals.Blog(title=request.title, body=request.body)
+def create_blog(request: sechams.Blog, db: Session = Depends(get_db)):
+    blog_obj = modals.Blog(title=request.title, 
+                           body=request.body, 
+                           author_id=1
+                           )
 
     db.add(blog_obj)
     db.commit()
@@ -78,7 +81,7 @@ def delete_blog(id, response: Response, db: Session = Depends(get_db)):
 
 
 @app.put('/blog', status_code=status.HTTP_202_ACCEPTED, tags=['blogs'])
-def update_blog(id, request: sechams.BlogModal, db: Session = Depends(get_db)):
+def update_blog(id, request: sechams.Blog, db: Session = Depends(get_db)):
     blog = db.query(modals.Blog).filter(modals.Blog.id == id)
 
     if not blog.first():
