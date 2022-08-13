@@ -1,14 +1,14 @@
 from fastapi import (
     Depends, 
-    Response, 
-    HTTPException, 
+    Response,  
     APIRouter,
     status
     )
 from sqlalchemy.orm import Session
 from typing import List
 
-from .. import modals, sechams, database
+from .. import sechams, database
+from ..repository import blog
 
 
 router = APIRouter(
@@ -18,78 +18,31 @@ router = APIRouter(
 
 # List all blogs
 @router.get('/', status_code=status.HTTP_200_OK, response_model=List[sechams.ShowBlog])
-def all_blogs(db: Session = Depends(database.get_db)):
-    blogs = db.query(modals.Blog).all()
-    return blogs
+def all(db: Session = Depends(database.get_db)):
+    return blog.get_all(db)
 
 # Create blog 
 @router.post('/', status_code=status.HTTP_201_CREATED)
-def create_blog(request: sechams.Blog, db: Session = Depends(database.get_db)):
-    blog_obj = modals.Blog(title=request.title, 
-                           body=request.body, 
-                           author_id=1
-                           )
-
-    db.add(blog_obj)
-    db.commit()
-
-    db.refresh(blog_obj)
-
-    return blog_obj
-
-# Get single blog
-@router.get('/{id}', status_code=status.HTTP_200_OK)
-def get_single_blog(id, response: Response, db: Session = Depends(database.get_db)):
-    blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
-    if not blog:
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return {'detail': f'Blog with ID {id} is not avaliable in the our Database.'}
-
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
-
-    return blog
+def create(request: sechams.Blog, db: Session = Depends(database.get_db)):
+    return blog.create(request, db)
 
 # Delete blog
 @router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_blog(id, response: Response, db: Session = Depends(database.get_db)):
-    blog = db.query(modals.Blog).\
-                    filter(modals.Blog.id == id)
+def delete(id, response: Response, db: Session = Depends(database.get_db)):
+    if blog.destory(id, db):
+        return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
 
-    if not blog.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
-    
-    blog.delete(synchronize_session=False)
-                    
-    db.commit()
-
-    return {'detail': f'Blog with ID {id} has been deleted succussfully.'}
+    return {'detail': f'Error: Blog with ID {id} has not deleted'}    
 
 # Update blog
 @router.put('/', status_code=status.HTTP_202_ACCEPTED)
-def update_blog(id, request: sechams.Blog, db: Session = Depends(database.get_db)):
-    blog = db.query(modals.Blog).filter(modals.Blog.id == id)
+def update(id, request: sechams.Blog, db: Session = Depends(database.get_db)):
+    if blog.update(id, request, db):
+        return {'detail': f'Blog with ID {id} has been updated succussfully.'}
 
-    if not blog.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
-                                
-    blog.update({modals.Blog.title: request.title,
-            modals.Blog.body: request.body
-            })
-                     
-    db.commit()
-    return {'detail': f'Blog with ID {id} has been updated succussfully.'}
+    return {'detail': f'Blog with ID {id} has not updated.'}
 
 # Show blog
 @router.get('/{id}', status_code=status.HTTP_200_OK, response_model=sechams.ShowBlog)
-def show_blog(id, response: Response, db: Session = Depends(database.get_db)):
-    blog = db.query(modals.Blog).filter(modals.Blog.id == id).first()
-
-    if not blog:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
-                            detail = f'Blog with ID {id} is not avaliable in the our Database.')
-
-
-    return blog
+def show(id, db: Session = Depends(database.get_db)):
+    return blog.show(id, db)
