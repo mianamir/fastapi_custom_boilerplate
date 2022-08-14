@@ -1,6 +1,16 @@
 from blog.modals import Blog
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
+
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
 
 
 class User(BaseModel):
@@ -34,3 +44,8 @@ class ShowBlog(BaseModel):
         orm_mode = True
 
 
+class Login(BaseModel):
+    username:str
+    password:str
+
+    
