@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Union
-from jose import jwt
+from jose import jwt, JWTError
 
+from .sechams import TokenData
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -20,3 +21,17 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def verify_token(data:str, credentials_exception):
+    try:
+        payload = jwt.decode(data, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        data = TokenData(username=email)
+    except JWTError:
+        raise credentials_exception
+
+    return data
+   

@@ -1,16 +1,15 @@
-from datetime import datetime, timedelta
-
-from blog import sechams
 from fastapi import (
             APIRouter, 
             Depends, 
             HTTPException, 
             status
             )
-from jose import JWTError, jwt
+
+from fastapi.security import OAuth2PasswordRequestForm
+
 from sqlalchemy.orm import Session
 
-from .. import sechams, database, modals, token
+from .. import database, modals, token
 from ..hashing import Hash
 
 
@@ -20,7 +19,7 @@ router = APIRouter(
 
 
 @router.post('/login', status_code=status.HTTP_200_OK)
-def login(request: sechams.Login, db: Session = Depends(database.get_db)):
+def login(request: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
     user = db.query(modals.User).filter(modals.User.email == request.username).first()
 
     if not user:
@@ -35,7 +34,4 @@ def login(request: sechams.Login, db: Session = Depends(database.get_db)):
     # generate JWT token
 
     access_token = token.create_access_token(data={"sub": user.email}) 
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-    return user 
+    return {"access_token": access_token, "token_type": "bearer"} 
